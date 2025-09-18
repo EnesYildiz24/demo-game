@@ -42,6 +42,9 @@ public class GameSetupManager : MonoBehaviour
         CreateUI();
         
         Debug.Log("Complete game setup finished!");
+
+        // Erstelle Unity-Setup-Hinweis Logo
+        CreateSetupHintLogo();
     }
     
     private void CreateCoreManagers()
@@ -141,10 +144,11 @@ public class GameSetupManager : MonoBehaviour
             Renderer renderer = groundGO.GetComponent<Renderer>();
             if (renderer != null)
             {
-                // Dunkler Boden für bessere Sichtbarkeit
-                renderer.material.color = new Color(0.3f, 0.3f, 0.3f); // Dunkelgrau
+                // Heller grauer Boden für bessere Sichtbarkeit und weniger "verbuggt" Aussehen
+                renderer.material.color = new Color(0.7f, 0.7f, 0.75f); // Hellgrau mit leichtem Blaustich
                 renderer.material.SetFloat("_Metallic", 0.0f);
-                renderer.material.SetFloat("_Smoothness", 0.1f);
+                renderer.material.SetFloat("_Smoothness", 0.05f);
+                renderer.material.SetFloat("_Glossiness", 0.0f);
             }
 
             // Entferne den MeshCollider und füge einen BoxCollider hinzu
@@ -624,5 +628,52 @@ public class GameSetupManager : MonoBehaviour
         crystalLight.intensity = 1.5f;
         crystalLight.spotAngle = 25f;
         crystalLight.range = 12f;
+    }
+
+    private void CreateSetupHintLogo()
+    {
+        // Erstelle ein Logo, das anzeigt, wann Unity-Einstellungen geändert werden müssen
+        GameObject logoGO = GameObject.Find("SetupHintLogo");
+        if (logoGO == null)
+        {
+            logoGO = new GameObject("SetupHintLogo");
+            logoGO.transform.position = new Vector3(0, 3, 0); // Über dem Spieler
+
+            // Erstelle einen einfachen Hintergrund
+            GameObject bgGO = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            bgGO.name = "LogoBackground";
+            bgGO.transform.SetParent(logoGO.transform);
+            bgGO.transform.localPosition = new Vector3(0, 0, 0.1f);
+            bgGO.transform.localScale = new Vector3(4, 2, 1);
+            bgGO.GetComponent<Renderer>().material.color = new Color(0, 0, 0, 0.7f); // Halbtransparent schwarz
+
+            // Erstelle ein einfaches Text-Logo
+            GameObject textGO = new GameObject("SetupText");
+            textGO.transform.SetParent(logoGO.transform);
+            textGO.transform.localPosition = Vector3.zero;
+
+            var textMesh = textGO.AddComponent<TextMesh>();
+            if (textMesh != null)
+            {
+                textMesh.text = "⚙️ UNITY SETUP HINT\n\nWenn du dieses Logo siehst:\n- Quality Settings uberprufen\n- VSync auf 'Don't Sync'\n- Target FPS auf 60\n- Shadows aktivieren";
+                textMesh.fontSize = 24;
+                textMesh.color = Color.yellow;
+                textMesh.anchor = TextAnchor.MiddleCenter;
+                textMesh.alignment = TextAlignment.Center;
+            }
+
+            // Logo ist standardmäßig unsichtbar - wird nur bei Bedarf angezeigt
+            logoGO.SetActive(false);
+        }
+    }
+
+    // Methode um das Logo ein-/auszuschalten
+    public void ShowSetupHint(bool show)
+    {
+        GameObject logoGO = GameObject.Find("SetupHintLogo");
+        if (logoGO != null)
+        {
+            logoGO.SetActive(show);
+        }
     }
 }
