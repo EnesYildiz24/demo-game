@@ -27,7 +27,6 @@ public class PressurePlate : MonoBehaviour
     
     // Private variables
     private bool isActivated = false;
-    private bool wasActivated = false;
     private float currentWeight = 0f;
     private float deactivationTimer = 0f;
     private Vector3 originalPosition;
