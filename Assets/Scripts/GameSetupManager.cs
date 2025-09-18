@@ -32,8 +32,8 @@ public class GameSetupManager : MonoBehaviour
         // Create Environment
         CreateEnvironment();
         
-        // Create Interactive Objects
-        CreateInteractiveObjects();
+        // Create Puzzle Levels
+        CreateFirstPuzzleLevel();
         
         // Create Physics Zones
         CreatePhysicsZones();
@@ -399,5 +399,214 @@ public class GameSetupManager : MonoBehaviour
             eventSystemGO.AddComponent<UnityEngine.EventSystems.EventSystem>();
             eventSystemGO.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
         }
+    }
+    
+    private void CreateFirstPuzzleLevel()
+    {
+        Debug.Log("Creating first puzzle level: Tutorial Box Puzzle");
+        
+        // Create the puzzle room structure
+        CreatePuzzleRoom();
+        
+        // Create the tutorial puzzle elements
+        CreateTutorialPuzzle();
+        
+        // Add visual hints and lighting
+        AddPuzzleLighting();
+    }
+    
+    private void CreatePuzzleRoom()
+    {
+        // Create a dedicated puzzle room
+        GameObject puzzleRoomGO = new GameObject("PuzzleRoom");
+        puzzleRoomGO.transform.position = new Vector3(0, 0, 0);
+        
+        // Create room floor (larger than main ground)
+        GameObject roomFloorGO = GameObject.CreatePrimitive(PrimitiveType.Plane);
+        roomFloorGO.name = "PuzzleRoomFloor";
+        roomFloorGO.transform.SetParent(puzzleRoomGO.transform);
+        roomFloorGO.transform.position = new Vector3(0, 0, 0);
+        roomFloorGO.transform.localScale = new Vector3(2, 1, 2); // 20x20 units
+        roomFloorGO.GetComponent<Renderer>().material.color = new Color(0.8f, 0.8f, 0.9f);
+        
+        // Create room walls
+        CreatePuzzleWall("PuzzleWall_North", new Vector3(0, 2.5f, 10), new Vector3(20, 5, 1));
+        CreatePuzzleWall("PuzzleWall_South", new Vector3(0, 2.5f, -10), new Vector3(20, 5, 1));
+        CreatePuzzleWall("PuzzleWall_East", new Vector3(10, 2.5f, 0), new Vector3(1, 5, 20));
+        CreatePuzzleWall("PuzzleWall_West", new Vector3(-10, 2.5f, 0), new Vector3(1, 5, 20));
+    }
+    
+    private void CreatePuzzleWall(string name, Vector3 position, Vector3 scale)
+    {
+        GameObject wallGO = GameObject.Find(name);
+        if (wallGO == null)
+        {
+            wallGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            wallGO.name = name;
+            wallGO.transform.position = position;
+            wallGO.transform.localScale = scale;
+            wallGO.GetComponent<Renderer>().material.color = new Color(0.6f, 0.6f, 0.7f);
+        }
+    }
+    
+    private void CreateTutorialPuzzle()
+    {
+        // 1. Create the puzzle box (grabbable object)
+        GameObject puzzleBoxGO = GameObject.Find("PuzzleBox");
+        if (puzzleBoxGO == null)
+        {
+            puzzleBoxGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            puzzleBoxGO.name = "PuzzleBox";
+            puzzleBoxGO.transform.position = new Vector3(-5, 1, -3); // Left side of room
+            puzzleBoxGO.transform.localScale = new Vector3(1, 1, 1);
+            puzzleBoxGO.GetComponent<Renderer>().material.color = new Color(0.8f, 0.4f, 0.2f); // Orange box
+            
+            // Add physics and grab components
+            Rigidbody rb = puzzleBoxGO.AddComponent<Rigidbody>();
+            rb.mass = 2f; // Heavy enough to activate pressure plate
+            puzzleBoxGO.AddComponent<PhysicsObject>();
+            puzzleBoxGO.AddComponent<Grabbable>();
+        }
+        
+        // 2. Create the pressure plate
+        GameObject pressurePlateGO = GameObject.Find("TutorialPressurePlate");
+        if (pressurePlateGO == null)
+        {
+            pressurePlateGO = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            pressurePlateGO.name = "TutorialPressurePlate";
+            pressurePlateGO.transform.position = new Vector3(0, 0.1f, -3); // Center of room
+            pressurePlateGO.transform.localScale = new Vector3(2, 0.2f, 2); // Wide, flat plate
+            pressurePlateGO.GetComponent<Renderer>().material.color = new Color(0.3f, 0.7f, 0.3f); // Green
+            
+            // Add pressure plate component
+            PressurePlate pressurePlate = pressurePlateGO.AddComponent<PressurePlate>();
+            pressurePlate.activationWeight = 1.5f; // Requires the box weight
+            pressurePlate.pressDepth = 0.1f;
+            pressurePlate.inactiveColor = new Color(0.3f, 0.7f, 0.3f);
+            pressurePlate.activeColor = new Color(0.1f, 1f, 0.1f); // Bright green when active
+            
+            // Add trigger collider
+            BoxCollider trigger = pressurePlateGO.AddComponent<BoxCollider>();
+            trigger.isTrigger = true;
+            trigger.size = new Vector3(2.5f, 1f, 2.5f);
+            trigger.center = new Vector3(0, 0.5f, 0);
+        }
+        
+        // 3. Create the door and door frame
+        CreateTutorialDoor();
+        
+        // 4. Create the crystal behind the door
+        CreateTutorialCrystal();
+        
+        // 5. Create door trigger system
+        CreateDoorTriggerSystem();
+    }
+    
+    private void CreateTutorialDoor()
+    {
+        // Create door frame
+        GameObject doorFrameGO = GameObject.Find("TutorialDoorFrame");
+        if (doorFrameGO == null)
+        {
+            doorFrameGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            doorFrameGO.name = "TutorialDoorFrame";
+            doorFrameGO.transform.position = new Vector3(0, 2.5f, 5); // North wall
+            doorFrameGO.transform.localScale = new Vector3(3, 5, 0.5f);
+            doorFrameGO.GetComponent<Renderer>().material.color = new Color(0.4f, 0.2f, 0.1f); // Brown frame
+        }
+        
+        // Create the actual door
+        GameObject doorGO = GameObject.Find("TutorialDoor");
+        if (doorGO == null)
+        {
+            doorGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            doorGO.name = "TutorialDoor";
+            doorGO.transform.position = new Vector3(0, 2.5f, 5.2f); // Slightly in front of frame
+            doorGO.transform.localScale = new Vector3(2.5f, 4.5f, 0.3f);
+            doorGO.GetComponent<Renderer>().material.color = new Color(0.6f, 0.3f, 0.1f); // Darker brown
+            
+            // Add door component
+            Door door = doorGO.AddComponent<Door>();
+            door.openPosition = new Vector3(0, 2.5f, 7f); // Slides forward when open
+            door.closedPosition = new Vector3(0, 2.5f, 5.2f);
+            door.openSpeed = 2f;
+        }
+    }
+    
+    private void CreateTutorialCrystal()
+    {
+        GameObject crystalGO = GameObject.Find("TutorialCrystal");
+        if (crystalGO == null)
+        {
+            crystalGO = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            crystalGO.name = "TutorialCrystal";
+            crystalGO.transform.position = new Vector3(0, 2f, 8); // Behind the door
+            crystalGO.transform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
+            
+            // Make it look like a crystal
+            Renderer renderer = crystalGO.GetComponent<Renderer>();
+            renderer.material.color = new Color(1f, 0.8f, 0.2f); // Golden crystal
+            renderer.material.SetFloat("_Metallic", 0.8f);
+            renderer.material.SetFloat("_Smoothness", 0.9f);
+            
+            // Add crystal collector component
+            CrystalCollector crystalCollector = crystalGO.AddComponent<CrystalCollector>();
+            crystalCollector.crystalValue = 1;
+            
+            // Add floating animation
+            crystalGO.AddComponent<FloatingCrystal>();
+        }
+    }
+    
+    private void CreateDoorTriggerSystem()
+    {
+        // Create door trigger
+        GameObject doorTriggerGO = GameObject.Find("TutorialDoorTrigger");
+        if (doorTriggerGO == null)
+        {
+            doorTriggerGO = new GameObject("TutorialDoorTrigger");
+            doorTriggerGO.transform.position = new Vector3(0, 1f, 0);
+            
+            // Add door trigger component
+            DoorTrigger doorTrigger = doorTriggerGO.AddComponent<DoorTrigger>();
+            
+            // Find the door and pressure plate
+            Door door = GameObject.Find("TutorialDoor").GetComponent<Door>();
+            PressurePlate pressurePlate = GameObject.Find("TutorialPressurePlate").GetComponent<PressurePlate>();
+            
+            // Configure the trigger
+            doorTrigger.targetDoor = door;
+            doorTrigger.openOnActivation = true;
+            doorTrigger.closeOnDeactivation = true;
+            doorTrigger.requiredPlates = new PressurePlate[] { pressurePlate };
+            doorTrigger.requireAllPlates = true;
+        }
+    }
+    
+    private void AddPuzzleLighting()
+    {
+        // Add spotlight over the pressure plate
+        GameObject pressurePlateLightGO = new GameObject("PressurePlateLight");
+        pressurePlateLightGO.transform.position = new Vector3(0, 8, -3);
+        pressurePlateLightGO.transform.rotation = Quaternion.Euler(45, 0, 0);
+        
+        Light pressurePlateLight = pressurePlateLightGO.AddComponent<Light>();
+        pressurePlateLight.type = LightType.Spot;
+        pressurePlateLight.color = new Color(0.2f, 1f, 0.2f); // Green light
+        pressurePlateLight.intensity = 2f;
+        pressurePlateLight.spotAngle = 30f;
+        pressurePlateLight.range = 15f;
+        
+        // Add spotlight over the crystal
+        GameObject crystalLightGO = new GameObject("CrystalLight");
+        crystalLightGO.transform.position = new Vector3(0, 8, 8);
+        crystalLightGO.transform.rotation = Quaternion.Euler(45, 0, 0);
+        
+        Light crystalLight = crystalLightGO.AddComponent<Light>();
+        crystalLight.type = LightType.Spot;
+        crystalLight.color = new Color(1f, 0.8f, 0.2f); // Golden light
+        crystalLight.intensity = 1.5f;
+        crystalLight.spotAngle = 25f;
+        crystalLight.range = 12f;
     }
 }
