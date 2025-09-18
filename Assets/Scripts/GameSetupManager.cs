@@ -645,14 +645,8 @@ public class GameSetupManager : MonoBehaviour
         door.doorSpeed = 8f; // Schnellere Tür-Öffnung
 
         // Win-Bedingung: Wenn diese Tür sich öffnet, hat der Spieler gewonnen
-        door.OnDoorOpen.AddListener(() => {
-            GameManager gameManager = FindObjectOfType<GameManager>();
-            if (gameManager != null)
-            {
-                // Sofortiger Sieg - keine Kristalle mehr nötig
-                gameManager.ForceWin();
-            }
-        });
+        // Event-Registrierung mit sicherer Initialisierung
+        StartCoroutine(RegisterDoorWinEvent(door));
         }
     }
     
@@ -797,6 +791,25 @@ public class GameSetupManager : MonoBehaviour
         col.size = new Vector3(1.5f, 0.5f, 1.5f);
         col.center = new Vector3(0, 0.25f, 0);
         col.isTrigger = true;
+    }
+
+    // Sichere Event-Registrierung für Tür-Sieg-Bedingung
+    private System.Collections.IEnumerator RegisterDoorWinEvent(Door door)
+    {
+        // Eine Frame warten, damit die Door-Komponente vollständig initialisiert ist
+        yield return null;
+
+        if (door != null && door.OnDoorOpen != null)
+        {
+            door.OnDoorOpen.AddListener(() => {
+                GameManager gameManager = FindObjectOfType<GameManager>();
+                if (gameManager != null)
+                {
+                    // Sofortiger Sieg - keine Kristalle mehr nötig
+                    gameManager.ForceWin();
+                }
+            });
+        }
     }
 
     private void CreateSetupHintLogo()
