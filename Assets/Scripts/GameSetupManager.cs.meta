@@ -3,7 +3,12 @@ guid: ab045c46c0359834c9f8d0a178d32df7
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - defaultMaterial: {instanceID: 0}
+  - crystalMaterial: {instanceID: 0}
+  - kenneyWallPrefab: {fileID: 919132149155446097, guid: f4cb6e0406cdfe04aaf5a267d1f53fbc, type: 3}
+  - kenneyDoorFramePrefab: {fileID: 919132149155446097, guid: 7cb6c5810091f7f45a21852fc79abc2c, type: 3}
+  - kenneyDoorPrefab: {fileID: 919132149155446097, guid: 041ccf11b4334f54ea4c7c9b4e831170, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

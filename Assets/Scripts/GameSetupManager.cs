@@ -6,6 +6,11 @@ public class GameSetupManager : MonoBehaviour
     public bool autoSetup = true;
     public Material defaultMaterial;
     public Material crystalMaterial;
+
+    [Header("Kenney Prefabs (optional)")]
+    public GameObject kenneyWallPrefab;           // e.g. Assets/KenneyBuildingKit/Models/FBX format/wall.fbx
+    public GameObject kenneyDoorFramePrefab;      // e.g. Assets/KenneyBuildingKit/Models/FBX format/wall-doorway-square.fbx
+    public GameObject kenneyDoorPrefab;           // e.g. Assets/KenneyBuildingKit/Models/FBX format/door-rotate-square-a.fbx
     
     void Start()
     {
@@ -144,10 +149,10 @@ public class GameSetupManager : MonoBehaviour
             // Create Camera
             GameObject cameraGO = new GameObject("PlayerCamera");
             cameraGO.transform.SetParent(playerGO.transform);
-            cameraGO.transform.localPosition = new Vector3(0, 0.5f, 0);
+            cameraGO.transform.localPosition = new Vector3(0, 1.7f, 0); // Höher positioniert
             
             Camera camera = cameraGO.AddComponent<Camera>();
-            camera.fieldOfView = 60f;
+            camera.fieldOfView = 75f; // Etwas breiteres Sichtfeld
             
             // Add PostProcessingManager to camera
             cameraGO.AddComponent<PostProcessingManager>();
@@ -221,11 +226,11 @@ public class GameSetupManager : MonoBehaviour
             boxCol.center = new Vector3(0, -0.05f, 0); // Etwas unter der Oberfläche
         }
 
-        // Walls mit Kenney-Modellen
-        CreateKenneyWall("Wall_North", new Vector3(0, 2.5f, 20), new Vector3(40, 5, 1), new Color(0.7f, 0.6f, 0.5f));
-        CreateKenneyWall("Wall_South", new Vector3(0, 2.5f, -20), new Vector3(40, 5, 1), new Color(0.7f, 0.6f, 0.5f));
-        CreateKenneyWall("Wall_East", new Vector3(20, 2.5f, 0), new Vector3(1, 5, 40), new Color(0.7f, 0.6f, 0.5f));
-        CreateKenneyWall("Wall_West", new Vector3(-20, 2.5f, 0), new Vector3(1, 5, 40), new Color(0.7f, 0.6f, 0.5f));
+        // Walls mit Kenney-Modellen (größer und sichtbarer)
+        CreateKenneyWall("Wall_North", new Vector3(0, 2.5f, 20), new Vector3(40, 5, 2), new Color(0.7f, 0.6f, 0.5f));
+        CreateKenneyWall("Wall_South", new Vector3(0, 2.5f, -20), new Vector3(40, 5, 2), new Color(0.7f, 0.6f, 0.5f));
+        CreateKenneyWall("Wall_East", new Vector3(20, 2.5f, 0), new Vector3(2, 5, 40), new Color(0.7f, 0.6f, 0.5f));
+        CreateKenneyWall("Wall_West", new Vector3(-20, 2.5f, 0), new Vector3(2, 5, 40), new Color(0.7f, 0.6f, 0.5f));
     }
     
     private void CreateWall(string name, Vector3 position, Vector3 scale)
@@ -270,25 +275,27 @@ public class GameSetupManager : MonoBehaviour
         GameObject wallGO = GameObject.Find(name);
         if (wallGO == null)
         {
-            // Load Kenney wall model
-            GameObject wallPrefab = Resources.Load<GameObject>("KenneyBuildingKit/Models/FBX format/wall");
-            if (wallPrefab != null)
+            // Prefer assigned Kenney prefab if available
+            if (kenneyWallPrefab != null)
             {
-                wallGO = Instantiate(wallPrefab);
+                wallGO = Instantiate(kenneyWallPrefab);
                 wallGO.name = name;
                 wallGO.transform.position = position;
                 wallGO.transform.localScale = scale;
             }
             else
             {
-                // Fallback to primitive if Kenney model not found
+                // Create wall with better design (no Kenney for now)
                 wallGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 wallGO.name = name;
                 wallGO.transform.position = position;
                 wallGO.transform.localScale = scale;
+                
+                // Add wall details
+                CreateWallDetails(wallGO);
             }
             
-            // Apply Kenney material
+            // Apply wall material
             Renderer renderer = wallGO.GetComponent<Renderer>();
             if (renderer != null)
             {
@@ -297,8 +304,137 @@ public class GameSetupManager : MonoBehaviour
                 wallMaterial.SetFloat("_Metallic", 0.1f);
                 wallMaterial.SetFloat("_Smoothness", 0.2f);
                 renderer.material = wallMaterial;
+                Debug.Log($"Wall material applied successfully for {name}!");
             }
         }
+    }
+    
+    private void CreateDoorFrameDetails(GameObject doorFrame)
+    {
+        // Add door frame corners
+        for (int i = 0; i < 4; i++)
+        {
+            GameObject corner = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            corner.name = $"DoorFrameCorner_{i}";
+            corner.transform.SetParent(doorFrame.transform);
+            
+            Vector3[] cornerPositions = {
+                new Vector3(-1.2f, -2.2f, 0), // Bottom left
+                new Vector3(1.2f, -2.2f, 0),  // Bottom right
+                new Vector3(-1.2f, 2.2f, 0),  // Top left
+                new Vector3(1.2f, 2.2f, 0)    // Top right
+            };
+            
+            corner.transform.localPosition = cornerPositions[i];
+            corner.transform.localScale = new Vector3(0.3f, 0.3f, 0.3f); // Größer für bessere Sichtbarkeit
+            
+            // Darker corner material
+            Renderer cornerRenderer = corner.GetComponent<Renderer>();
+            Material cornerMaterial = new Material(Shader.Find("Standard"));
+            cornerMaterial.color = new Color(0.2f, 0.1f, 0.05f); // Very dark wood
+            cornerMaterial.SetFloat("_Metallic", 0.0f);
+            cornerMaterial.SetFloat("_Smoothness", 0.0f);
+            cornerRenderer.material = cornerMaterial;
+        }
+        
+        // Add door frame trim
+        GameObject trim = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        trim.name = "DoorFrameTrim";
+        trim.transform.SetParent(doorFrame.transform);
+        trim.transform.localPosition = new Vector3(0, 0, 0.1f);
+        trim.transform.localScale = new Vector3(1.1f, 1.1f, 0.1f);
+        
+        // Trim material
+        Renderer trimRenderer = trim.GetComponent<Renderer>();
+        Material trimMaterial = new Material(Shader.Find("Standard"));
+        trimMaterial.color = new Color(0.1f, 0.05f, 0.02f); // Very dark trim
+        trimMaterial.SetFloat("_Metallic", 0.0f);
+        trimMaterial.SetFloat("_Smoothness", 0.0f);
+        trimRenderer.material = trimMaterial;
+    }
+    
+    private void CreateDoorDetails(GameObject door)
+    {
+        // Add door handle
+        GameObject handle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        handle.name = "DoorHandle";
+        handle.transform.SetParent(door.transform);
+        handle.transform.localPosition = new Vector3(0.8f, 0, 0.2f);
+        handle.transform.localScale = new Vector3(0.3f, 0.3f, 0.2f); // Größer für bessere Sichtbarkeit
+        
+        // Metallic handle material
+        Renderer handleRenderer = handle.GetComponent<Renderer>();
+        Material handleMaterial = new Material(Shader.Find("Standard"));
+        handleMaterial.color = new Color(0.7f, 0.7f, 0.8f); // Metallic silver
+        handleMaterial.SetFloat("_Metallic", 0.8f);
+        handleMaterial.SetFloat("_Smoothness", 0.9f);
+        handleRenderer.material = handleMaterial;
+        
+        // Add door panels
+        for (int i = 0; i < 3; i++)
+        {
+            GameObject panel = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            panel.name = $"DoorPanel_{i}";
+            panel.transform.SetParent(door.transform);
+            panel.transform.localPosition = new Vector3(0, (i - 1) * 1.2f, 0.1f);
+            panel.transform.localScale = new Vector3(1.8f, 0.2f, 0.1f); // Größer für bessere Sichtbarkeit
+            
+            // Slightly darker panel material
+            Renderer panelRenderer = panel.GetComponent<Renderer>();
+            Material panelMaterial = new Material(Shader.Find("Standard"));
+            panelMaterial.color = new Color(0.7f, 0.5f, 0.3f); // Darker wood
+            panelMaterial.SetFloat("_Metallic", 0.0f);
+            panelMaterial.SetFloat("_Smoothness", 0.2f);
+            panelRenderer.material = panelMaterial;
+        }
+        
+        // Add door border
+        GameObject border = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        border.name = "DoorBorder";
+        border.transform.SetParent(door.transform);
+        border.transform.localPosition = new Vector3(0, 0, 0.05f);
+        border.transform.localScale = new Vector3(1.1f, 1.1f, 0.05f);
+        
+        // Border material
+        Renderer borderRenderer = border.GetComponent<Renderer>();
+        Material borderMaterial = new Material(Shader.Find("Standard"));
+        borderMaterial.color = new Color(0.4f, 0.3f, 0.2f); // Dark wood border
+        borderMaterial.SetFloat("_Metallic", 0.0f);
+        borderMaterial.SetFloat("_Smoothness", 0.1f);
+        borderRenderer.material = borderMaterial;
+    }
+    
+    private void CreateWallDetails(GameObject wall)
+    {
+        // Add wall trim
+        GameObject trim = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        trim.name = "WallTrim";
+        trim.transform.SetParent(wall.transform);
+        trim.transform.localPosition = new Vector3(0, 2.4f, 0);
+        trim.transform.localScale = new Vector3(1.1f, 0.2f, 1.1f); // Größer für bessere Sichtbarkeit
+        
+        // Darker trim material
+        Renderer trimRenderer = trim.GetComponent<Renderer>();
+        Material trimMaterial = new Material(Shader.Find("Standard"));
+        trimMaterial.color = new Color(0.4f, 0.3f, 0.2f); // Dark wood trim
+        trimMaterial.SetFloat("_Metallic", 0.0f);
+        trimMaterial.SetFloat("_Smoothness", 0.1f);
+        trimRenderer.material = trimMaterial;
+        
+        // Add wall baseboard
+        GameObject baseboard = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        baseboard.name = "WallBaseboard";
+        baseboard.transform.SetParent(wall.transform);
+        baseboard.transform.localPosition = new Vector3(0, -2.4f, 0);
+        baseboard.transform.localScale = new Vector3(1.1f, 0.2f, 1.1f);
+        
+        // Baseboard material
+        Renderer baseboardRenderer = baseboard.GetComponent<Renderer>();
+        Material baseboardMaterial = new Material(Shader.Find("Standard"));
+        baseboardMaterial.color = new Color(0.3f, 0.2f, 0.1f); // Darker wood baseboard
+        baseboardMaterial.SetFloat("_Metallic", 0.0f);
+        baseboardMaterial.SetFloat("_Smoothness", 0.1f);
+        baseboardRenderer.material = baseboardMaterial;
     }
     
     private void CreateInteractiveObjects()
@@ -657,33 +793,36 @@ public class GameSetupManager : MonoBehaviour
         GameObject doorFrameGO = GameObject.Find("TutorialDoorFrame");
         if (doorFrameGO == null)
         {
-            // Load Kenney wall model for door frame
-            GameObject wallPrefab = Resources.Load<GameObject>("KenneyBuildingKit/Models/FBX format/wall-doorway-square");
-            if (wallPrefab != null)
+            // Prefer assigned Kenney prefab if available
+            if (kenneyDoorFramePrefab != null)
             {
-                doorFrameGO = Instantiate(wallPrefab);
+                doorFrameGO = Instantiate(kenneyDoorFramePrefab);
                 doorFrameGO.name = "TutorialDoorFrame";
                 doorFrameGO.transform.position = new Vector3(0, 2.5f, 5); // North wall
-                doorFrameGO.transform.localScale = new Vector3(3, 5, 1);
+                doorFrameGO.transform.localScale = new Vector3(3, 5, 1f);
             }
             else
             {
-                // Fallback to primitive if Kenney model not found
+                // Create door frame with better design (no Kenney for now)
                 doorFrameGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 doorFrameGO.name = "TutorialDoorFrame";
-                doorFrameGO.transform.position = new Vector3(0, 2.5f, 5);
+                doorFrameGO.transform.position = new Vector3(0, 2.5f, 5); // North wall
                 doorFrameGO.transform.localScale = new Vector3(3, 5, 0.5f);
+                
+                // Add door frame details
+                CreateDoorFrameDetails(doorFrameGO);
             }
             
-            // Apply Kenney material
+            // Apply better material for door frame
             Renderer frameRenderer = doorFrameGO.GetComponent<Renderer>();
             if (frameRenderer != null)
             {
                 Material frameMaterial = new Material(Shader.Find("Standard"));
-                frameMaterial.color = new Color(0.4f, 0.3f, 0.2f); // Kenney-style brown
-                frameMaterial.SetFloat("_Metallic", 0.1f);
-                frameMaterial.SetFloat("_Smoothness", 0.3f);
+                frameMaterial.color = new Color(0.3f, 0.2f, 0.1f); // Dark wood frame
+                frameMaterial.SetFloat("_Metallic", 0.0f);
+                frameMaterial.SetFloat("_Smoothness", 0.1f);
                 frameRenderer.material = frameMaterial;
+                Debug.Log("Door frame material applied successfully!");
             }
         }
         
@@ -691,33 +830,36 @@ public class GameSetupManager : MonoBehaviour
         GameObject doorGO = GameObject.Find("TutorialDoor");
         if (doorGO == null)
         {
-            // Load Kenney door model
-            GameObject doorPrefab = Resources.Load<GameObject>("KenneyBuildingKit/Models/FBX format/door-rotate-square-a");
-            if (doorPrefab != null)
+            // Prefer assigned Kenney prefab if available
+            if (kenneyDoorPrefab != null)
             {
-                doorGO = Instantiate(doorPrefab);
+                doorGO = Instantiate(kenneyDoorPrefab);
                 doorGO.name = "TutorialDoor";
                 doorGO.transform.position = new Vector3(0, 2.5f, 5.1f); // Slightly in front of frame
-                doorGO.transform.localScale = new Vector3(2.5f, 4.5f, 1);
+                doorGO.transform.localScale = new Vector3(2.5f, 4.5f, 1f);
             }
             else
             {
-                // Fallback to primitive if Kenney model not found
+                // Create door with better design (no Kenney for now)
                 doorGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 doorGO.name = "TutorialDoor";
-                doorGO.transform.position = new Vector3(0, 2.5f, 5.1f);
+                doorGO.transform.position = new Vector3(0, 2.5f, 5.1f); // Slightly in front of frame
                 doorGO.transform.localScale = new Vector3(2.5f, 4.5f, 0.3f);
+                
+                // Add door details
+                CreateDoorDetails(doorGO);
             }
             
-            // Apply Kenney material
+            // Apply better material for door
             Renderer doorRenderer = doorGO.GetComponent<Renderer>();
             if (doorRenderer != null)
             {
                 Material doorMaterial = new Material(Shader.Find("Standard"));
-                doorMaterial.color = new Color(0.6f, 0.4f, 0.2f); // Kenney-style wood
-                doorMaterial.SetFloat("_Metallic", 0.2f);
-                doorMaterial.SetFloat("_Smoothness", 0.4f);
+                doorMaterial.color = new Color(0.8f, 0.6f, 0.4f); // Light wood door
+                doorMaterial.SetFloat("_Metallic", 0.1f);
+                doorMaterial.SetFloat("_Smoothness", 0.3f);
                 doorRenderer.material = doorMaterial;
+                Debug.Log("Door material applied successfully!");
             }
 
             // Add door component
