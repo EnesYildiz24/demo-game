@@ -655,8 +655,8 @@ public class GameSetupManager : MonoBehaviour
             var textMesh = textGO.AddComponent<TextMesh>();
             if (textMesh != null)
             {
-                textMesh.text = "⚙️ UNITY SETUP HINT\n\nWenn du dieses Logo siehst:\n- Quality Settings uberprufen\n- VSync auf 'Don't Sync'\n- Target FPS auf 60\n- Shadows aktivieren";
-                textMesh.fontSize = 24;
+                textMesh.text = "!!! UNITY EINSTELLEN !!!\n\nWenn du dieses Logo siehst:\n- Quality Settings uberprufen\n- VSync auf 'Don't Sync'\n- Target FPS auf 60\n- Shadows aktivieren";
+                textMesh.fontSize = 28;
                 textMesh.color = Color.yellow;
                 textMesh.anchor = TextAnchor.MiddleCenter;
                 textMesh.alignment = TextAlignment.Center;
