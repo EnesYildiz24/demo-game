@@ -182,7 +182,6 @@ public class UIManager : MonoBehaviour
         }
     }
     
-    
     public void ShowInstructions()
     {
         if (instructionsText == null)
