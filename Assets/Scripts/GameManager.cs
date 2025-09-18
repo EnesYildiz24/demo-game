@@ -67,14 +67,24 @@ public class GameManager : MonoBehaviour
     private void WinGame()
     {
         gameWon = true;
-        
+
         if (uiManager != null)
         {
             uiManager.ShowWinPanel();
         }
-        
+
         // Unlock cursor
         Cursor.lockState = CursorLockMode.None;
+    }
+
+    // Neue Methode für sofortigen Sieg (z.B. wenn Tür sich öffnet)
+    public void ForceWin()
+    {
+        if (!gameWon)
+        {
+            Debug.Log("Spieler hat gewonnen! Tür wurde geöffnet.");
+            WinGame();
+        }
     }
     
     public void RestartGame()

@@ -40,6 +40,12 @@ public class Door : Interactable
             {
                 isMoving = false;
                 isOpen = (targetAngle == openAngle);
+
+                // Event auslösen wenn Tür sich öffnet
+                if (isOpen && OnDoorOpen != null)
+                {
+                    OnDoorOpen.Invoke();
+                }
             }
         }
     }

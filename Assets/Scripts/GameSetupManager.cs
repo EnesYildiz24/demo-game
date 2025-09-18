@@ -638,11 +638,21 @@ public class GameSetupManager : MonoBehaviour
             doorGO.transform.localScale = new Vector3(2.5f, 4.5f, 0.3f);
             doorGO.GetComponent<Renderer>().material.color = new Color(0.6f, 0.3f, 0.1f); // Darker brown
             
-            // Add door component
-            Door door = doorGO.AddComponent<Door>();
-            door.openAngle = 90f; // Rotates 90 degrees when open
-            door.closeAngle = 0f; // Normal position when closed
-            door.doorSpeed = 2f;
+        // Add door component
+        Door door = doorGO.AddComponent<Door>();
+        door.openAngle = 90f; // Rotates 90 degrees when open
+        door.closeAngle = 0f; // Normal position when closed
+        door.doorSpeed = 8f; // Schnellere Tür-Öffnung
+
+        // Win-Bedingung: Wenn diese Tür sich öffnet, hat der Spieler gewonnen
+        door.OnDoorOpen.AddListener(() => {
+            GameManager gameManager = FindObjectOfType<GameManager>();
+            if (gameManager != null)
+            {
+                // Sofortiger Sieg - keine Kristalle mehr nötig
+                gameManager.ForceWin();
+            }
+        });
         }
     }
     
@@ -729,17 +739,17 @@ public class GameSetupManager : MonoBehaviour
 
         AudioManager audioManager = FindObjectOfType<AudioManager>();
 
-        // Teleporter Pair 1: Haupt-Navigation (Cyan <-> Magenta)
-        CreateTeleporterPair("Teleporter_A", new Vector3(8, 1, 0), Color.cyan,
-                           "Teleporter_B", new Vector3(-8, 1, 0), Color.magenta, audioManager);
+        // Teleporter Pair 1: Zentraler Bereich (Cyan <-> Magenta)
+        CreateTeleporterPair("Teleporter_A", new Vector3(5, 1, 3), Color.cyan,
+                           "Teleporter_B", new Vector3(-5, 1, 3), Color.magenta, audioManager);
 
-        // Teleporter Pair 2: Puzzle-Bereich (Grün <-> Blau)
-        CreateTeleporterPair("Teleporter_C", new Vector3(0, 1, 12), Color.green,
-                           "Teleporter_D", new Vector3(0, 1, -12), Color.blue, audioManager);
+        // Teleporter Pair 2: Hinten vorne (Grün <-> Blau)
+        CreateTeleporterPair("Teleporter_C", new Vector3(0, 1, 8), Color.green,
+                           "Teleporter_D", new Vector3(0, 1, -8), Color.blue, audioManager);
 
-        // Teleporter Pair 3: Seitliche Navigation (Gelb <-> Rot)
-        CreateTeleporterPair("Teleporter_E", new Vector3(15, 1, 5), Color.yellow,
-                           "Teleporter_F", new Vector3(-15, 1, 5), Color.red, audioManager);
+        // Teleporter Pair 3: Seitlich (Gelb <-> Rot)
+        CreateTeleporterPair("Teleporter_E", new Vector3(12, 1, 0), Color.yellow,
+                           "Teleporter_F", new Vector3(-12, 1, 0), Color.red, audioManager);
 
         Debug.Log("4 Teleporter-Paare erstellt: A↔B, C↔D, E↔F");
     }
