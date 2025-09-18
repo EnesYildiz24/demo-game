@@ -40,7 +40,9 @@ public class Teleporter : MonoBehaviour
         if (teleporterRenderer != null)
         {
             teleporterRenderer.material.color = teleportColor;
-            teleporterRenderer.material.SetFloat("_EmissionColor", teleportColor);
+            // Emission für Glow-Effekt aktivieren
+            teleporterRenderer.material.EnableKeyword("_EMISSION");
+            teleporterRenderer.material.SetColor("_EmissionColor", teleportColor * 0.5f);
         }
 
         // Teleport-Effekt vorbereiten
@@ -165,7 +167,18 @@ public class Teleporter : MonoBehaviour
         isActive = active;
         if (teleporterRenderer != null)
         {
-            teleporterRenderer.material.color = active ? teleportColor : Color.gray;
+            if (active)
+            {
+                teleporterRenderer.material.color = teleportColor;
+                teleporterRenderer.material.EnableKeyword("_EMISSION");
+                teleporterRenderer.material.SetColor("_EmissionColor", teleportColor * 0.5f);
+            }
+            else
+            {
+                teleporterRenderer.material.color = Color.gray;
+                teleporterRenderer.material.DisableKeyword("_EMISSION");
+                teleporterRenderer.material.SetColor("_EmissionColor", Color.black);
+            }
         }
     }
 }
