@@ -61,9 +61,8 @@ public class Teleporter : MonoBehaviour
 
         teleportEffect = effectGO.AddComponent<ParticleSystem>();
 
-        // Konfiguriere Partikel-System
+        // Konfiguriere Partikel-System (ohne duration zu setzen während es läuft)
         var main = teleportEffect.main;
-        main.duration = effectDuration;
         main.loop = false;
         main.startLifetime = 1f;
         main.startSpeed = 2f;
@@ -76,6 +75,10 @@ public class Teleporter : MonoBehaviour
         var shape = teleportEffect.shape;
         shape.shapeType = ParticleSystemShapeType.Sphere;
         shape.radius = 1f;
+
+        // Duration separat setzen
+        var mainModule = teleportEffect.main;
+        mainModule.duration = effectDuration;
     }
 
     void OnTriggerEnter(Collider other)

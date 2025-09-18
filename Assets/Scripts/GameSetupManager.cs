@@ -725,54 +725,68 @@ public class GameSetupManager : MonoBehaviour
 
     private void CreateTeleporters()
     {
-        // Erstelle zwei Teleporter-Paare für interessante Navigation
+        // Erstelle mehrere Teleporter-Paare für komplexe Navigation
 
-        // Teleporter Pair 1: Rechts vom Puzzle-Bereich
-        Vector3 teleporter1Pos = new Vector3(8, 1, 0);
-        Vector3 teleporter2Pos = new Vector3(-8, 1, 0);
+        AudioManager audioManager = FindObjectOfType<AudioManager>();
 
-        // Teleporter 1 (Eingang)
+        // Teleporter Pair 1: Haupt-Navigation (Cyan <-> Magenta)
+        CreateTeleporterPair("Teleporter_A", new Vector3(8, 1, 0), Color.cyan,
+                           "Teleporter_B", new Vector3(-8, 1, 0), Color.magenta, audioManager);
+
+        // Teleporter Pair 2: Puzzle-Bereich (Grün <-> Blau)
+        CreateTeleporterPair("Teleporter_C", new Vector3(0, 1, 12), Color.green,
+                           "Teleporter_D", new Vector3(0, 1, -12), Color.blue, audioManager);
+
+        // Teleporter Pair 3: Seitliche Navigation (Gelb <-> Rot)
+        CreateTeleporterPair("Teleporter_E", new Vector3(15, 1, 5), Color.yellow,
+                           "Teleporter_F", new Vector3(-15, 1, 5), Color.red, audioManager);
+
+        Debug.Log("4 Teleporter-Paare erstellt: A↔B, C↔D, E↔F");
+    }
+
+    private void CreateTeleporterPair(string name1, Vector3 pos1, Color color1,
+                                    string name2, Vector3 pos2, Color color2, AudioManager audioManager)
+    {
+        // Teleporter 1
         GameObject teleporter1GO = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        teleporter1GO.name = "Teleporter_A";
-        teleporter1GO.transform.position = teleporter1Pos;
-        teleporter1GO.transform.localScale = new Vector3(1.5f, 0.1f, 1.5f); // Flach wie eine Plattform
+        teleporter1GO.name = name1;
+        teleporter1GO.transform.position = pos1;
+        teleporter1GO.transform.localScale = new Vector3(1.5f, 0.1f, 1.5f);
 
         Teleporter teleporter1 = teleporter1GO.AddComponent<Teleporter>();
-        teleporter1.teleportColor = Color.cyan;
+        teleporter1.teleportColor = color1;
 
-        // Teleporter 2 (Ausgang)
+        // Teleporter 2
         GameObject teleporter2GO = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        teleporter2GO.name = "Teleporter_B";
-        teleporter2GO.transform.position = teleporter2Pos;
+        teleporter2GO.name = name2;
+        teleporter2GO.transform.position = pos2;
         teleporter2GO.transform.localScale = new Vector3(1.5f, 0.1f, 1.5f);
 
         Teleporter teleporter2 = teleporter2GO.AddComponent<Teleporter>();
-        teleporter2.teleportColor = Color.magenta;
+        teleporter2.teleportColor = color2;
 
-        // Verbinde die Teleporter miteinander
+        // Verbinde die Teleporter
         teleporter1.linkedTeleporter = teleporter2;
         teleporter2.linkedTeleporter = teleporter1;
 
         // Füge Collider hinzu
-        BoxCollider col1 = teleporter1GO.AddComponent<BoxCollider>();
-        col1.size = new Vector3(1.5f, 0.5f, 1.5f);
-        col1.center = new Vector3(0, 0.25f, 0);
-        col1.isTrigger = true;
+        AddTeleporterCollider(teleporter1GO);
+        AddTeleporterCollider(teleporter2GO);
 
-        BoxCollider col2 = teleporter2GO.AddComponent<BoxCollider>();
-        col2.size = new Vector3(1.5f, 0.5f, 1.5f);
-        col2.center = new Vector3(0, 0.25f, 0);
-        col2.isTrigger = true;
-
-        // AudioManager finden und Teleport-Sound zuweisen
-        AudioManager audioManager = FindObjectOfType<AudioManager>();
+        // Sound zuweisen
         if (audioManager != null)
         {
             teleporter1.teleportSound = audioManager.teleportSound;
             teleporter2.teleportSound = audioManager.teleportSound;
         }
+    }
 
-        Debug.Log("Teleporter-Paar erstellt: A <-> B");
+    private void AddTeleporterCollider(GameObject teleporterGO)
+    {
+        BoxCollider col = teleporterGO.AddComponent<BoxCollider>();
+        col.size = new Vector3(1.5f, 0.5f, 1.5f);
+        col.center = new Vector3(0, 0.25f, 0);
+        col.isTrigger = true;
     }
 
     private void CreateSetupHintLogo()
