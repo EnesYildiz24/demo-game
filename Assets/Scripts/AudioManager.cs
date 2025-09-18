@@ -21,6 +21,8 @@ public class AudioManager : MonoBehaviour
     public AudioClip dropSound;
     public AudioClip switchSound;
     public AudioClip doorSound;
+    public AudioClip teleportSound;
+    public AudioClip pressurePlateSound;
     
     [Header("Ambient Audio")]
     public AudioClip ambientLoop;
@@ -194,6 +196,22 @@ public class AudioManager : MonoBehaviour
         if (doorSound != null)
         {
             sfxSource.PlayOneShot(doorSound, 0.7f);
+        }
+    }
+
+    public void PlayTeleportSound()
+    {
+        if (teleportSound != null)
+        {
+            sfxSource.PlayOneShot(teleportSound, 0.8f);
+        }
+    }
+
+    public void PlayPressurePlateSound()
+    {
+        if (pressurePlateSound != null)
+        {
+            sfxSource.PlayOneShot(pressurePlateSound, 0.6f);
         }
     }
     

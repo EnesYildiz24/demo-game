@@ -41,6 +41,10 @@ public class PressurePlate : MonoBehaviour
     
     void Start()
     {
+        // Ensure events are initialized
+        if (OnActivated == null) OnActivated = new UnityEngine.Events.UnityEvent();
+        if (OnDeactivated == null) OnDeactivated = new UnityEngine.Events.UnityEvent();
+        
         // Store original position
         originalPosition = transform.position;
         pressedPosition = originalPosition - Vector3.up * pressDepth;
@@ -140,8 +144,13 @@ public class PressurePlate : MonoBehaviour
         isActivated = true;
         targetColor = activeColor;
         
-        // Play activation sound
-        if (activateSound != null && audioSource != null)
+        // Play activation sound via AudioManager
+        AudioManager audioManager = FindObjectOfType<AudioManager>();
+        if (audioManager != null)
+        {
+            audioManager.PlayPressurePlateSound();
+        }
+        else if (activateSound != null && audioSource != null)
         {
             audioSource.PlayOneShot(activateSound);
         }
