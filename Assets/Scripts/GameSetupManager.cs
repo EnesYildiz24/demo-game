@@ -134,15 +134,37 @@ public class GameSetupManager : MonoBehaviour
             groundGO = GameObject.CreatePrimitive(PrimitiveType.Plane);
             groundGO.name = "Ground";
             groundGO.transform.position = new Vector3(0, 0, 0);
-            groundGO.transform.localScale = new Vector3(10, 1, 10);
+            groundGO.transform.localScale = new Vector3(20, 1, 20); // Größer machen
             groundGO.layer = LayerMask.NameToLayer("Default");
+
+            // Bessere Boden-Textur und Kollision
+            Renderer renderer = groundGO.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                // Dunkler Boden für bessere Sichtbarkeit
+                renderer.material.color = new Color(0.3f, 0.3f, 0.3f); // Dunkelgrau
+                renderer.material.SetFloat("_Metallic", 0.0f);
+                renderer.material.SetFloat("_Smoothness", 0.1f);
+            }
+
+            // Entferne den MeshCollider und füge einen BoxCollider hinzu
+            MeshCollider meshCol = groundGO.GetComponent<MeshCollider>();
+            if (meshCol != null)
+            {
+                DestroyImmediate(meshCol);
+            }
+
+            // Füge einen BoxCollider hinzu für bessere Kollision
+            BoxCollider boxCol = groundGO.AddComponent<BoxCollider>();
+            boxCol.size = new Vector3(20, 0.1f, 20); // Dünner Collider
+            boxCol.center = new Vector3(0, -0.05f, 0); // Etwas unter der Oberfläche
         }
-        
+
         // Walls
-        CreateWall("Wall_North", new Vector3(0, 2.5f, 50), new Vector3(100, 5, 1));
-        CreateWall("Wall_South", new Vector3(0, 2.5f, -50), new Vector3(100, 5, 1));
-        CreateWall("Wall_East", new Vector3(50, 2.5f, 0), new Vector3(1, 5, 100));
-        CreateWall("Wall_West", new Vector3(-50, 2.5f, 0), new Vector3(1, 5, 100));
+        CreateWall("Wall_North", new Vector3(0, 2.5f, 20), new Vector3(40, 5, 1));
+        CreateWall("Wall_South", new Vector3(0, 2.5f, -20), new Vector3(40, 5, 1));
+        CreateWall("Wall_East", new Vector3(20, 2.5f, 0), new Vector3(1, 5, 40));
+        CreateWall("Wall_West", new Vector3(-20, 2.5f, 0), new Vector3(1, 5, 40));
     }
     
     private void CreateWall(string name, Vector3 position, Vector3 scale)
@@ -420,14 +442,8 @@ public class GameSetupManager : MonoBehaviour
         // Create a dedicated puzzle room
         GameObject puzzleRoomGO = new GameObject("PuzzleRoom");
         puzzleRoomGO.transform.position = new Vector3(0, 0, 0);
-        
-        // Create room floor (larger than main ground)
-        GameObject roomFloorGO = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        roomFloorGO.name = "PuzzleRoomFloor";
-        roomFloorGO.transform.SetParent(puzzleRoomGO.transform);
-        roomFloorGO.transform.position = new Vector3(0, 0, 0);
-        roomFloorGO.transform.localScale = new Vector3(2, 1, 2); // 20x20 units
-        roomFloorGO.GetComponent<Renderer>().material.color = new Color(0.8f, 0.8f, 0.9f);
+
+        // Room floor ist jetzt der Haupt-Ground, keine separate Plane mehr
         
         // Create room walls
         CreatePuzzleWall("PuzzleWall_North", new Vector3(0, 2.5f, 10), new Vector3(20, 5, 1));
