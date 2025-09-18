@@ -5,7 +5,7 @@ using TMPro;
 public class GameManager : MonoBehaviour
 {
     [Header("Game Settings")]
-    public int totalCrystals = 5;
+    public int totalCrystals = 6; // 5 normale + 1 hinter der Tür
     
     private int collectedCrystals = 0;
     private bool gameWon = false;
