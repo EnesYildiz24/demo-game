@@ -527,9 +527,9 @@ public class GameSetupManager : MonoBehaviour
             
             // Add door component
             Door door = doorGO.AddComponent<Door>();
-            door.openPosition = new Vector3(0, 2.5f, 7f); // Slides forward when open
-            door.closedPosition = new Vector3(0, 2.5f, 5.2f);
-            door.openSpeed = 2f;
+            door.openAngle = 90f; // Rotates 90 degrees when open
+            door.closeAngle = 0f; // Normal position when closed
+            door.doorSpeed = 2f;
         }
     }
     
