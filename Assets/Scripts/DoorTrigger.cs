@@ -39,12 +39,15 @@ public class DoorTrigger : MonoBehaviour
         }
         
         // Subscribe to pressure plate events
-        foreach (PressurePlate plate in requiredPlates)
+        if (requiredPlates != null)
         {
-            if (plate != null)
+            foreach (PressurePlate plate in requiredPlates)
             {
-                plate.OnActivated.AddListener(CheckTrigger);
-                plate.OnDeactivated.AddListener(CheckTrigger);
+                if (plate != null)
+                {
+                    plate.OnActivated.AddListener(CheckTrigger);
+                    plate.OnDeactivated.AddListener(CheckTrigger);
+                }
             }
         }
         
@@ -56,7 +59,7 @@ public class DoorTrigger : MonoBehaviour
         bool shouldTrigger = false;
         
         // Safety check for requiredPlates array
-        if (requiredPlates.Length == 0)
+        if (requiredPlates == null || requiredPlates.Length == 0)
         {
             shouldTrigger = false;
         }
@@ -153,6 +156,12 @@ public class DoorTrigger : MonoBehaviour
     {
         if (plate != null)
         {
+            // Initialize array if null
+            if (requiredPlates == null)
+            {
+                requiredPlates = new PressurePlate[0];
+            }
+            
             // Check if plate already exists
             if (!System.Array.Exists(requiredPlates, p => p == plate))
             {
@@ -172,12 +181,15 @@ public class DoorTrigger : MonoBehaviour
     void OnDestroy()
     {
         // Unsubscribe from events
-        foreach (PressurePlate plate in requiredPlates)
+        if (requiredPlates != null)
         {
-            if (plate != null)
+            foreach (PressurePlate plate in requiredPlates)
             {
-                plate.OnActivated.RemoveListener(CheckTrigger);
-                plate.OnDeactivated.RemoveListener(CheckTrigger);
+                if (plate != null)
+                {
+                    plate.OnActivated.RemoveListener(CheckTrigger);
+                    plate.OnDeactivated.RemoveListener(CheckTrigger);
+                }
             }
         }
     }
