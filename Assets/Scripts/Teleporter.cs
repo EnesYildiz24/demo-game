@@ -83,16 +83,33 @@ public class Teleporter : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (!isActive) return;
+        Debug.Log($"Teleporter {name}: Trigger entered by {other.name} (Tag: {other.tag})");
+
+        if (!isActive)
+        {
+            Debug.Log($"Teleporter {name}: Not active!");
+            return;
+        }
 
         // Nur Player teleportieren
         if (other.CompareTag("Player"))
         {
-            // Cooldown prüfen
-            if (Time.time - lastTeleportTime < teleportCooldown) return;
+            Debug.Log($"Teleporter {name}: Player detected, checking cooldown...");
 
+            // Cooldown prüfen
+            if (Time.time - lastTeleportTime < teleportCooldown)
+            {
+                Debug.Log($"Teleporter {name}: Cooldown active! Time since last teleport: {Time.time - lastTeleportTime}s");
+                return;
+            }
+
+            Debug.Log($"Teleporter {name}: Teleporting player!");
             // Teleport ausführen
             TeleportPlayer(other.transform);
+        }
+        else
+        {
+            Debug.Log($"Teleporter {name}: Object {other.name} is not Player (tag: {other.tag})");
         }
     }
 
@@ -110,8 +127,26 @@ public class Teleporter : MonoBehaviour
         // Teleport-Position berechnen (etwas über dem Boden)
         Vector3 targetPosition = linkedTeleporter.transform.position + Vector3.up * 1.5f;
 
-        // Player teleportieren
-        playerTransform.position = targetPosition;
+        Debug.Log($"Teleporting from {playerTransform.position} to {targetPosition}");
+
+        // Player teleportieren - verschiedene Methoden versuchen
+        CharacterController controller = playerTransform.GetComponent<CharacterController>();
+        if (controller != null)
+        {
+            // CharacterController Methode
+            controller.enabled = false;
+            playerTransform.position = targetPosition;
+            controller.enabled = true;
+            Debug.Log("Used CharacterController teleport method");
+        }
+        else
+        {
+            // Direkte Transform Methode
+            playerTransform.position = targetPosition;
+            Debug.Log("Used direct transform teleport method");
+        }
+
+        Debug.Log($"Player is now at {playerTransform.position}");
 
         // Effekte abspielen
         PlayTeleportEffects();
