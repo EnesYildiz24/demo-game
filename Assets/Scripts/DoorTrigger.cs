@@ -9,7 +9,7 @@ public class DoorTrigger : MonoBehaviour
     public float delay = 0f; // Delay before opening/closing
     
     [Header("Multiple Triggers")]
-    public PressurePlate[] requiredPlates = new PressurePlate[0]; // All plates must be activated
+    public PressurePlate[] requiredPlates; // Will be initialized in Start()
     public bool requireAllPlates = true; // If false, any plate can trigger
     
     [Header("Visual Feedback")]
@@ -19,6 +19,15 @@ public class DoorTrigger : MonoBehaviour
     
     private bool isTriggered = false;
     private Renderer indicatorRenderer;
+    
+    void Awake()
+    {
+        // Initialize requiredPlates array first - this prevents null reference
+        if (requiredPlates == null)
+        {
+            requiredPlates = new PressurePlate[0];
+        }
+    }
     
     void Start()
     {
@@ -36,12 +45,6 @@ public class DoorTrigger : MonoBehaviour
             {
                 indicatorRenderer = indicatorLight.GetComponentInChildren<Renderer>();
             }
-        }
-        
-        // Initialize requiredPlates array if null
-        if (requiredPlates == null)
-        {
-            requiredPlates = new PressurePlate[0];
         }
         
         // Subscribe to pressure plate events
