@@ -625,7 +625,13 @@ public class GameSetupManager : MonoBehaviour
             doorFrameGO.name = "TutorialDoorFrame";
             doorFrameGO.transform.position = new Vector3(0, 2.5f, 5); // North wall
             doorFrameGO.transform.localScale = new Vector3(3, 5, 0.5f);
-            doorFrameGO.GetComponent<Renderer>().material.color = new Color(0.4f, 0.2f, 0.1f); // Brown frame
+            // Schönerer Türrahmen mit dunklerem Holzton
+            Renderer frameRenderer = doorFrameGO.GetComponent<Renderer>();
+            Material frameMaterial = new Material(Shader.Find("Standard"));
+            frameMaterial.color = new Color(0.3f, 0.2f, 0.1f); // Dunkler Holzrahmen
+            frameMaterial.SetFloat("_Metallic", 0.0f);
+            frameMaterial.SetFloat("_Smoothness", 0.2f);
+            frameRenderer.material = frameMaterial;
         }
         
         // Create the actual door
@@ -636,8 +642,28 @@ public class GameSetupManager : MonoBehaviour
             doorGO.name = "TutorialDoor";
             doorGO.transform.position = new Vector3(0, 2.5f, 5.2f); // Slightly in front of frame
             doorGO.transform.localScale = new Vector3(2.5f, 4.5f, 0.3f);
-            doorGO.GetComponent<Renderer>().material.color = new Color(0.6f, 0.3f, 0.1f); // Darker brown
-            
+            // Schöneres Tür-Design mit Metallic-Material
+            Renderer doorRenderer = doorGO.GetComponent<Renderer>();
+            Material doorMaterial = new Material(Shader.Find("Standard"));
+            doorMaterial.color = new Color(0.8f, 0.6f, 0.4f); // Warmer Holzton
+            doorMaterial.SetFloat("_Metallic", 0.1f);
+            doorMaterial.SetFloat("_Smoothness", 0.3f);
+            doorRenderer.material = doorMaterial;
+
+            // Türklinke hinzufügen für besseres Design
+            GameObject doorHandleGO = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            doorHandleGO.name = "DoorHandle";
+            doorHandleGO.transform.SetParent(doorGO.transform);
+            doorHandleGO.transform.localPosition = new Vector3(0.8f, 0, 0.2f);
+            doorHandleGO.transform.localScale = new Vector3(0.2f, 0.2f, 0.1f);
+
+            Renderer handleRenderer = doorHandleGO.GetComponent<Renderer>();
+            Material handleMaterial = new Material(Shader.Find("Standard"));
+            handleMaterial.color = new Color(0.7f, 0.7f, 0.8f); // Metallischer Griff
+            handleMaterial.SetFloat("_Metallic", 0.8f);
+            handleMaterial.SetFloat("_Smoothness", 0.9f);
+            handleRenderer.material = handleMaterial;
+
         // Add door component
         Door door = doorGO.AddComponent<Door>();
         door.openAngle = 90f; // Rotates 90 degrees when open
