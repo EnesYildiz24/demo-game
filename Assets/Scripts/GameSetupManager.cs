@@ -11,8 +11,17 @@ public class GameSetupManager : MonoBehaviour
     {
         if (autoSetup)
         {
-            SetupCompleteGame();
+            // Kleine Verzögerung um Transform-System Fehler zu vermeiden
+            StartCoroutine(DelayedSetup());
         }
+    }
+
+    private System.Collections.IEnumerator DelayedSetup()
+    {
+        // Eine Frame warten, damit Unity-Systeme bereit sind
+        yield return null;
+
+        SetupCompleteGame();
     }
     
     [ContextMenu("Setup Complete Game")]
@@ -123,8 +132,8 @@ public class GameSetupManager : MonoBehaviour
             // Add PostProcessingManager to camera
             cameraGO.AddComponent<PostProcessingManager>();
             
-            // Set position
-            playerGO.transform.position = new Vector3(0, 1, 0);
+            // Set position - sicherere Methode
+            playerGO.transform.SetPositionAndRotation(new Vector3(0, 1, 0), Quaternion.identity);
         }
     }
     
@@ -136,19 +145,47 @@ public class GameSetupManager : MonoBehaviour
         {
             groundGO = GameObject.CreatePrimitive(PrimitiveType.Plane);
             groundGO.name = "Ground";
-            groundGO.transform.position = new Vector3(0, 0, 0);
-            groundGO.transform.localScale = new Vector3(20, 1, 20); // Größer machen
+            // Transform-Änderungen in separaten Zeilen für bessere Stabilität
+            groundGO.transform.SetPositionAndRotation(new Vector3(0, 0, 0), Quaternion.identity);
+            groundGO.transform.localScale = new Vector3(20, 1, 20);
             groundGO.layer = LayerMask.NameToLayer("Default");
 
-            // Bessere Boden-Textur und Kollision
+            // Professioneller Boden-Design mit Grid-Pattern
             Renderer renderer = groundGO.GetComponent<Renderer>();
             if (renderer != null)
             {
-                // Heller grauer Boden für bessere Sichtbarkeit und weniger "verbuggt" Aussehen
-                renderer.material.color = new Color(0.7f, 0.7f, 0.75f); // Hellgrau mit leichtem Blaustich
-                renderer.material.SetFloat("_Metallic", 0.0f);
-                renderer.material.SetFloat("_Smoothness", 0.05f);
-                renderer.material.SetFloat("_Glossiness", 0.0f);
+                // Erstelle ein neues Material für den Boden
+                Material groundMaterial = new Material(Shader.Find("Standard"));
+                groundMaterial.color = new Color(0.85f, 0.85f, 0.9f); // Hellgrau mit leichtem Blaustich
+                groundMaterial.SetFloat("_Metallic", 0.1f);
+                groundMaterial.SetFloat("_Smoothness", 0.2f);
+
+                // Erstelle ein einfaches Grid-Texture programmatisch
+                Texture2D gridTexture = new Texture2D(128, 128, TextureFormat.RGBA32, false);
+                Color gridColor = new Color(0.7f, 0.7f, 0.8f); // Dunklere Grid-Linien
+                Color bgColor = new Color(0.9f, 0.9f, 0.95f); // Hellerer Hintergrund
+
+                for (int x = 0; x < 128; x++)
+                {
+                    for (int y = 0; y < 128; y++)
+                    {
+                        // Erstelle Grid-Linien alle 16 Pixel
+                        if (x % 16 == 0 || y % 16 == 0)
+                        {
+                            gridTexture.SetPixel(x, y, gridColor);
+                        }
+                        else
+                        {
+                            gridTexture.SetPixel(x, y, bgColor);
+                        }
+                    }
+                }
+                gridTexture.Apply();
+
+                groundMaterial.mainTexture = gridTexture;
+                groundMaterial.mainTextureScale = new Vector2(10, 10); // Grid skalieren
+
+                renderer.material = groundMaterial;
             }
 
             // Entferne den MeshCollider und füge einen BoxCollider hinzu
@@ -164,11 +201,11 @@ public class GameSetupManager : MonoBehaviour
             boxCol.center = new Vector3(0, -0.05f, 0); // Etwas unter der Oberfläche
         }
 
-        // Walls
-        CreateWall("Wall_North", new Vector3(0, 2.5f, 20), new Vector3(40, 5, 1));
-        CreateWall("Wall_South", new Vector3(0, 2.5f, -20), new Vector3(40, 5, 1));
-        CreateWall("Wall_East", new Vector3(20, 2.5f, 0), new Vector3(1, 5, 40));
-        CreateWall("Wall_West", new Vector3(-20, 2.5f, 0), new Vector3(1, 5, 40));
+        // Walls mit besserem Design
+        CreateStyledWall("Wall_North", new Vector3(0, 2.5f, 20), new Vector3(40, 5, 1), new Color(0.8f, 0.8f, 0.85f));
+        CreateStyledWall("Wall_South", new Vector3(0, 2.5f, -20), new Vector3(40, 5, 1), new Color(0.8f, 0.8f, 0.85f));
+        CreateStyledWall("Wall_East", new Vector3(20, 2.5f, 0), new Vector3(1, 5, 40), new Color(0.8f, 0.8f, 0.85f));
+        CreateStyledWall("Wall_West", new Vector3(-20, 2.5f, 0), new Vector3(1, 5, 40), new Color(0.8f, 0.8f, 0.85f));
     }
     
     private void CreateWall(string name, Vector3 position, Vector3 scale)
@@ -178,8 +215,33 @@ public class GameSetupManager : MonoBehaviour
         {
             wallGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
             wallGO.name = name;
-            wallGO.transform.position = position;
+            // Sicherere Transform-Änderungen
+            wallGO.transform.SetPositionAndRotation(position, Quaternion.identity);
             wallGO.transform.localScale = scale;
+        }
+    }
+
+    private void CreateStyledWall(string name, Vector3 position, Vector3 scale, Color wallColor)
+    {
+        GameObject wallGO = GameObject.Find(name);
+        if (wallGO == null)
+        {
+            wallGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            wallGO.name = name;
+            // Sicherere Transform-Änderungen
+            wallGO.transform.SetPositionAndRotation(position, Quaternion.identity);
+            wallGO.transform.localScale = scale;
+
+            // Verbessertes Material für Wände
+            Renderer renderer = wallGO.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                Material wallMaterial = new Material(Shader.Find("Standard"));
+                wallMaterial.color = wallColor;
+                wallMaterial.SetFloat("_Metallic", 0.0f);
+                wallMaterial.SetFloat("_Smoothness", 0.1f);
+                renderer.material = wallMaterial;
+            }
         }
     }
     
@@ -463,9 +525,20 @@ public class GameSetupManager : MonoBehaviour
         {
             wallGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
             wallGO.name = name;
-            wallGO.transform.position = position;
+            // Sicherere Transform-Änderungen
+            wallGO.transform.SetPositionAndRotation(position, Quaternion.identity);
             wallGO.transform.localScale = scale;
-            wallGO.GetComponent<Renderer>().material.color = new Color(0.6f, 0.6f, 0.7f);
+
+            // Gleiches Material wie die äußeren Wände für Konsistenz
+            Renderer renderer = wallGO.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                Material wallMaterial = new Material(Shader.Find("Standard"));
+                wallMaterial.color = new Color(0.75f, 0.75f, 0.8f); // Leicht dunkler als äußere Wände
+                wallMaterial.SetFloat("_Metallic", 0.0f);
+                wallMaterial.SetFloat("_Smoothness", 0.1f);
+                renderer.material = wallMaterial;
+            }
         }
     }
     
