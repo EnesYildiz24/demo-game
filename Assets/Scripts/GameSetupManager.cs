@@ -18,8 +18,11 @@ public class GameSetupManager : MonoBehaviour
 
     private System.Collections.IEnumerator DelayedSetup()
     {
-        // Eine Frame warten, damit Unity-Systeme bereit sind
-        yield return null;
+        // Mehrere Frames warten für bessere Stabilität
+        for (int i = 0; i < 3; i++)
+        {
+            yield return null;
+        }
 
         SetupCompleteGame();
     }
@@ -28,32 +31,45 @@ public class GameSetupManager : MonoBehaviour
     public void SetupCompleteGame()
     {
         Debug.Log("Setting up complete Quantum Puzzle Game...");
-        
-        // Create Core Managers (except AudioManager)
-        CreateCoreManagers();
-        
-        // Create Player first
-        CreatePlayer();
-        
-        // Create AudioManager after player
-        CreateAudioManager();
-        
-        // Create Environment
-        CreateEnvironment();
-        
-        // Create Puzzle Levels
-        CreateFirstPuzzleLevel();
-        
-        // Create Physics Zones
-        CreatePhysicsZones();
-        
-        // Create UI
-        CreateUI();
-        
-        Debug.Log("Complete game setup finished!");
 
-        // Erstelle Unity-Setup-Hinweis Logo
+        // Starte Setup als Coroutine für bessere Stabilität
+        StartCoroutine(SetupCoroutine());
+    }
+
+    private System.Collections.IEnumerator SetupCoroutine()
+    {
+        // Phase 1: Core Managers
+        CreateCoreManagers();
+        yield return null;
+
+        // Phase 2: Player
+        CreatePlayer();
+        yield return null;
+
+        // Phase 3: AudioManager
+        CreateAudioManager();
+        yield return null;
+
+        // Phase 4: Environment
+        CreateEnvironment();
+        yield return null;
+
+        // Phase 5: Puzzle Level
+        CreateFirstPuzzleLevel();
+        yield return null;
+
+        // Phase 6: Physics Zones
+        CreatePhysicsZones();
+        yield return null;
+
+        // Phase 7: UI
+        CreateUI();
+        yield return null;
+
+        // Phase 8: Logo
         CreateSetupHintLogo();
+
+        Debug.Log("Complete game setup finished!");
     }
     
     private void CreateCoreManagers()
